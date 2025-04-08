@@ -1,3 +1,3 @@
 <?= $this->partial('common/header') ?>
-This is Index page
+<a href="/election/year">依選舉查詢</a>
 <?= $this->partial('common/footer') ?>
