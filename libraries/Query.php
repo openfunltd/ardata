@@ -2,6 +2,41 @@
 
 class Query
 {
+    public static function getRecords($elections, $serial, $candidate, $limit, $page)
+    {
+        foreach ($elections as $election) {
+            if ($serial == $election->_source->yearOrSerial) {
+                $path = $election->_source->path;
+                break;
+            }
+        }
+
+        $query = [
+            'bool' => [
+                'must' => [
+                    ['term' => ['path.keyword' => $path]],
+                    ['term' => ['擬參選人／政黨.keyword' => $candidate]],
+                ],
+            ],
+        ];
+        $ret = Elastic::dbQuery("/{prefix}record/_search", 'GET', json_encode([
+            'size' => $limit,
+            'from' => ($page - 1) * $limit,
+            'query' => $query,
+        ]));
+
+        $hits = $ret->hits->hits;
+        $total = $ret->hits->total->value;
+        $rows = array_map(function ($hit) {
+            return $hit->_source;
+        }, $hits);
+
+        return (object) [
+            'total' => $total,
+            'rows' => $rows,
+        ];
+    }
+
     public static function getElectionCandidates($paths)
     {
         $filtered_data = [
@@ -34,7 +69,7 @@ class Query
         return $candidates;
     }
 
-    public static function getElectionPaths($year, $election, $area)
+    public static function getElections($year, $election, $area)
     {
         $query = [
             'bool' => [
@@ -54,6 +89,13 @@ class Query
         ]));
 
         $elections = $ret->hits->hits;
+
+        return $elections;
+    }
+
+    public static function getElectionPaths($year, $election, $area)
+    {
+        $elections = self::getElections($year, $election, $area);
         $paths = array_map(function ($election) {
             return $election->_source->path;
         }, $elections);
