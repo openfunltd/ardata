@@ -9,6 +9,10 @@ $serial = $this->serial;
 
 $elections = Query::getElections($year, $election, $area);
 $records = Query::getRecords($elections, $serial, $candidate, $limit, $page);
+$serials = [];
+foreach ($elections as $e) {
+    $serials[] = $e->_source->yearOrSerial;
+}
 
 $total = $records->total;
 $rows = $records->rows;
@@ -19,6 +23,19 @@ $fields = [
     '應揭露之支出對象', '支出對象之內部人員姓名', '支出對象之內部人員職稱', '政黨之內部人員姓名', '政黨之內部人員職稱',
     '關係', '更正註記', '資料更正日期',
 ];
+
+$serial_html = '';
+foreach ($serials as $idx => $s) {
+    if ($idx != 0) {
+        $serial_html .= ' | ';
+    }
+    if ($s == $serial) {
+        $serial_html .= '<span class="fw-bold">' . FilingSerial::toZh($s) .'</span>';
+    } else {
+        $serial_html .= '<span>' . FilingSerial::toZh($s) .'</span>';
+    }
+}
+
 ?>
 <style>
   .font-size-small {
@@ -33,6 +50,10 @@ $fields = [
       | <?= $this->escape($area) ?>
     <?php } ?>
     | <?= $this->escape($election) ?>
+
+  </div>
+  <div class="row">
+    <p class="px-0 my-0">申報序號：<?= $serial_html ?></p>
   </div>
   <div class="row">
     每頁 <?= $this->escape($limit) ?> 筆
