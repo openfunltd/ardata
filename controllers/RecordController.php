@@ -26,5 +26,25 @@ class RecordController extends MiniEngine_Controller
         $this->view->serial= $serial;
         $this->view->limit = $limit;
         $this->view->page = $page;
+
+        $breadcrumb_root = [
+            ['text' => 'Home', 'url' => '/'],
+            ['text' => '依選舉查詢', 'url' => '/election/year'],
+        ];
+        if (isset($area)) {
+            $breadcrumbs = [
+                ['text' => $year . '年度', 'url' => "/election/election?year={$year}"],
+                ['text' => $election, 'url' => "/election/area?year={$year}&election={$election}"],
+                ['text' => $area, 'url' => "/election/candidate?year={$year}&election={$election}&area={$area}"],
+                ['text' => $candidate],
+            ];
+        } else {
+            $breadcrumbs = [
+                ['text' => $year . '年度', 'url' => "/election/election?year={$year}"],
+                ['text' => $election, 'url' => "/election/area?year={$year}&election={$election}"],
+                ['text' => $candidate],
+            ];
+        }
+        $this->view->breadcrumbs = array_merge($breadcrumb_root, $breadcrumbs);
     }
 }

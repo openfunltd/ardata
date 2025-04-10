@@ -2,9 +2,14 @@
 
 class ElectionController extends MiniEngine_Controller
 {
+    public static $breadcrumb_root = [
+        ['text' => 'Home', 'url' => '/'],
+        ['text' => '依選舉查詢', 'url' => '/election/year'],
+    ];
+
     public function yearAction()
     {
-        //
+        $this->view->breadcrumbs = self::$breadcrumb_root;
     }
 
     public function electionAction()
@@ -19,6 +24,9 @@ class ElectionController extends MiniEngine_Controller
         }
 
         $this->view->year = $year;
+        $this->view->breadcrumbs = array_merge(self::$breadcrumb_root, [
+            ['text' => $year . '年度'],
+        ]);
     }
 
     public function areaAction()
@@ -41,6 +49,10 @@ class ElectionController extends MiniEngine_Controller
         }
 
         $this->view->distinct_areas = $distinct_areas;
+        $this->view->breadcrumbs = array_merge(self::$breadcrumb_root, [
+            ['text' => $year . '年度', 'url' => "/election/election?year={$year}"],
+            ['text' => $election],
+        ]);
     }
 
     public function candidateAction()
@@ -59,5 +71,17 @@ class ElectionController extends MiniEngine_Controller
         $this->view->year = $year;
         $this->view->election = $election;
         $this->view->area = $area;
+        if (isset($area)) {
+            $this->view->breadcrumbs = array_merge(self::$breadcrumb_root, [
+                ['text' => $year . '年度', 'url' => "/election/election?year={$year}"],
+                ['text' => $election, 'url' => "/election/area?year={$year}&election={$election}"],
+                ['text' => $area],
+            ]);
+        } else {
+            $this->view->breadcrumbs = array_merge(self::$breadcrumb_root, [
+                ['text' => $year . '年度', 'url' => "/election/election?year={$year}"],
+                ['text' => $election],
+            ]);
+        }
     }
 }

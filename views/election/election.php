@@ -27,6 +27,7 @@ $distinct_elections = array_map(function ($election) {
 }, $distinct_elections);
 ?>
 <?= $this->partial('common/header') ?>
+<?= $this->partial('partial/breadcrumb', ['breadcrumbs' => $this->breadcrumbs]) ?>
 <div>請選擇選舉：</div>
 <?php foreach ($distinct_elections as $election) { ?>
   <div>

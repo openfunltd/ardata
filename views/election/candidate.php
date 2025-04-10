@@ -18,6 +18,7 @@ $candidates = array_map(function ($candidate) use ($year, $election, $area){
 }, $candidates);
 ?>
 <?= $this->partial('common/header') ?>
+<?= $this->partial('partial/breadcrumb', ['breadcrumbs' => $this->breadcrumbs]) ?>
 <div>擬參選人/政黨：</div>
 <?php foreach ($candidates as $candidate) { ?>
   <div>

@@ -20,6 +20,7 @@ $distinct_years = array_map(function ($year) {
 }, $distinct_years);
 ?>
 <?= $this->partial('common/header') ?>
+<?= $this->partial('partial/breadcrumb', ['breadcrumbs' => $this->breadcrumbs]) ?>
 <div>請選擇選舉年度：</div>
 <?php foreach ($distinct_years as $year) { ?>
   <div>

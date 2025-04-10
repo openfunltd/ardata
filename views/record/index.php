@@ -43,6 +43,7 @@ foreach ($serials as $idx => $s) {
   }
 </style>
 <?= $this->partial('common/header') ?>
+<?= $this->partial('partial/breadcrumb', ['breadcrumbs' => $this->breadcrumbs]) ?>
 <div class="container">
   <div class="row">
     <?= $this->escape($candidate) ?>
