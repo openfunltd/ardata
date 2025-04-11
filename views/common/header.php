@@ -10,4 +10,4 @@
   <div class="warpper">
     <?= $this->partial('partial/main-header') ?>
     <?= $this->partial('partial/main-sidebar') ?>
-    <div class="content-wrapper" style="min-height: 1302.4px;">
+    <div class="content-wrapper px-4 py-2" style="min-height: 1302.4px;">
