@@ -8,3 +8,4 @@
 </head>
 <body class="sidebar-mini layout-fixed" style="height: auto;">
   <div class="warpper">
+    <?= $this->partial('partial/main-header') ?>
