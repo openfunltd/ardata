@@ -6,4 +6,5 @@
 <title><?= $this->escape($this->app_name) ?></title>
 <?= $this->partial('partial/cdn_asset') ?>
 </head>
-<body>
+<body class="sidebar-mini layout-fixed" style="height: auto;">
+  <div class="warpper">
