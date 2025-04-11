@@ -7,6 +7,11 @@ class ElectionController extends MiniEngine_Controller
         ['text' => '依選舉查詢', 'url' => '/election/year'],
     ];
 
+    public function indexAction()
+    {
+        //
+    }
+
     public function yearAction()
     {
         $this->view->breadcrumbs = self::$breadcrumb_root;
