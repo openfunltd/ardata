@@ -4,3 +4,4 @@ config.inc.php
 .*.swp
 .prompt_history
 /controllers/LabController.php
+/views/lab/
