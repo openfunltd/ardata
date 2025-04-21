@@ -62,6 +62,12 @@ class ElectionController extends MiniEngine_Controller
             $data->filters->{$variable . '_options'} = $options;
         }
 
+        $rows = $ret->hits->hits;
+        $rows = array_map(function ($row) {
+            return $row->_source;
+        }, $rows);
+        $data->rows = $rows;
+
         return $data;
     }
 
