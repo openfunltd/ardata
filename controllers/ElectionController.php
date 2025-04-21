@@ -2,91 +2,73 @@
 
 class ElectionController extends MiniEngine_Controller
 {
-    public static $breadcrumb_root = [
-        ['text' => 'Home', 'url' => '/'],
-        ['text' => '依選舉查詢', 'url' => '/election/year'],
-    ];
-
     public function indexAction()
     {
-        //
+        $limit = filter_input(INPUT_GET, 'limit' ,FILTER_SANITIZE_STRING) ?? 10;
+        $page = filter_input(INPUT_GET, 'page' ,FILTER_SANITIZE_STRING) ?? 1;
+
+        $data = self::requestData($limit, $page);
+
+        $this->view->data = $data;
     }
 
-    public function yearAction()
+    private static function requestData($limit, $page)
     {
-        $this->view->breadcrumbs = self::$breadcrumb_root;
+        $query = self::buildQuery($limit, $page);
+        $ret = Elastic::dbQuery("/{prefix}election/_search", 'GET', json_encode($query));
+        return self::transformData($ret);
     }
 
-    public function electionAction()
+    private static function buildQuery($limit, $page)
     {
-        $year = filter_input(INPUT_GET, 'year' ,FILTER_SANITIZE_STRING) ?? null;
+        $query = (object) [
+            "from" => ($page - 1) * $limit,
+            "size" => $limit,
+            "aggs" => (object) [],
+        ];
 
-        if (is_null($year)) {
-            header('HTTP/1.1 400 Bad Request');
-            echo "<h1>400 Bad Request</h1>";
-            echo "<p>Need year</p>";
-            exit;
+        foreach (self::AGG_FIELDS as $variable => $field) {
+            $query->aggs->{$variable . '_option'} = [
+                'terms' => [
+                    'field' => $field,
+                    'size' => 1000,
+                    'order' => ['_key' => 'desc'],
+                ],
+            ];
         }
 
-        $this->view->year = $year;
-        $this->view->breadcrumbs = array_merge(self::$breadcrumb_root, [
-            ['text' => $year . '年度'],
-        ]);
+        return $query;
     }
 
-    public function areaAction()
+    private static function transformData($ret)
     {
-        $year = filter_input(INPUT_GET, 'year' ,FILTER_SANITIZE_STRING) ?? null;
-        $election = filter_input(INPUT_GET, 'election' ,FILTER_SANITIZE_STRING) ?? null;
+        $data = (object)[
+            'filters' => (object) [],
+            'rows' => (object) [],
+        ];
 
-        if (is_null($year) or is_null($election)) {
-            header('HTTP/1.1 400 Bad Request');
-            echo "<h1>400 Bad Request</h1>";
-            echo "<p>Need year and election</p>";
-            exit;
+        $aggs = $ret->aggregations;
+        foreach (self::AGG_FIELDS as $variable => $field) {
+            $options = $aggs->{$variable . '_option'}->buckets;
+            $options = array_map(function ($option) {
+                $item = (object) [];
+                $item->key = $option->key;
+                $item->count = $option->doc_count;
+                return $item;
+            }, $options);
+            $options = array_filter($options, function ($option) {
+                return $option->key != '';
+            });
+            $data->filters->{$variable . '_options'} = $options;
         }
 
-        $distinct_areas = Query::getElectionAreas($year, $election);
-
-        //全國性選舉沒有 area 區分 example: 總統副總統選舉
-        if (count($distinct_areas) == 1) {
-           $this->redirect("/election/candidate?year={$year}&election={$election}"); 
-        }
-
-        $this->view->distinct_areas = $distinct_areas;
-        $this->view->breadcrumbs = array_merge(self::$breadcrumb_root, [
-            ['text' => $year . '年度', 'url' => "/election/election?year={$year}"],
-            ['text' => $election],
-        ]);
+        return $data;
     }
 
-    public function candidateAction()
-    {
-        $year = filter_input(INPUT_GET, 'year' ,FILTER_SANITIZE_STRING) ?? null;
-        $election = filter_input(INPUT_GET, 'election' ,FILTER_SANITIZE_STRING) ?? null;
-        $area = filter_input(INPUT_GET, 'area' ,FILTER_SANITIZE_STRING) ?? null;
-
-        if (is_null($year) or is_null($election)) {
-            header('HTTP/1.1 400 Bad Request');
-            echo "<h1>400 Bad Request</h1>";
-            echo "<p>Need at least year and election</p>";
-            exit;
-        }
-
-        $this->view->year = $year;
-        $this->view->election = $election;
-        $this->view->area = $area;
-        if (isset($area)) {
-            $this->view->breadcrumbs = array_merge(self::$breadcrumb_root, [
-                ['text' => $year . '年度', 'url' => "/election/election?year={$year}"],
-                ['text' => $election, 'url' => "/election/area?year={$year}&election={$election}"],
-                ['text' => $area],
-            ]);
-        } else {
-            $this->view->breadcrumbs = array_merge(self::$breadcrumb_root, [
-                ['text' => $year . '年度', 'url' => "/election/election?year={$year}"],
-                ['text' => $election],
-            ]);
-        }
-    }
+    const AGG_FIELDS = [
+        'year' => 'electionYear.keyword',
+        'election' => 'electionName.keyword',
+        'area' => 'electionArea.keyword',
+        'declare_serial' => 'yearOrSerial',
+    ];
 }
